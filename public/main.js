@@ -31,18 +31,18 @@ function urlBase64ToUint8Array(base64String) {
 async function loadConfig() {
   const response = await fetch('/api/config');
   if (!response.ok) {
-    throw new Error('Impossible de charger la configuration serveur.');
+    throw new Error('Unable to load server configuration.');
   }
   const data = await response.json();
   vapidPublicKey = data.vapidPublicKey;
   if (!vapidPublicKey) {
-    throw new Error('VAPID public key manquante sur le serveur.');
+    throw new Error('Missing VAPID public key on the server.');
   }
 }
 
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) {
-    throw new Error('Service Worker non supporte par ce navigateur.');
+    throw new Error('Service Worker is not supported by this browser.');
   }
   swRegistration = await navigator.serviceWorker.register('/sw.js');
 }
@@ -50,14 +50,14 @@ async function registerServiceWorker() {
 async function requestPermission() {
   const result = await Notification.requestPermission();
   if (result !== 'granted') {
-    throw new Error(`Permission refusee (${result}).`);
+    throw new Error(`Notification permission denied (${result}).`);
   }
 }
 
 async function subscribePush() {
   const email = normalizeEmail(emailInput.value);
   if (!email) {
-    throw new Error('Saisis un email avant de t abonner.');
+    throw new Error('Enter an email address before subscribing.');
   }
 
   let subscription = await swRegistration.pushManager.getSubscription();
@@ -82,7 +82,7 @@ async function subscribePush() {
 
   if (!saveResponse.ok) {
     const body = await saveResponse.text();
-    throw new Error(`Echec sauvegarde abonnement: ${body}`);
+    throw new Error(`Failed to save subscription: ${body}`);
   }
 
   return subscription;
@@ -91,7 +91,7 @@ async function subscribePush() {
 btnPermission.addEventListener('click', async () => {
   try {
     await requestPermission();
-    setStatus('Permission notifications: OK');
+    setStatus('Notification permission: granted');
   } catch (error) {
     setStatus(error.message);
   }
@@ -99,10 +99,10 @@ btnPermission.addEventListener('click', async () => {
 
 btnSubscribe.addEventListener('click', async () => {
   try {
-    setStatus('Abonnement en cours...');
+    setStatus('Subscribing...');
     await requestPermission();
     const subscription = await subscribePush();
-    setStatus(`Abonnement actif pour ${normalizeEmail(emailInput.value)}.\nEndpoint: ${subscription.endpoint}`);
+    setStatus(`Subscription active for ${normalizeEmail(emailInput.value)}.\nEndpoint: ${subscription.endpoint}`);
   } catch (error) {
     setStatus(error.message);
   }
@@ -110,10 +110,10 @@ btnSubscribe.addEventListener('click', async () => {
 
 (async function init() {
   try {
-    setStatus('Initialisation...');
+    setStatus('Initializing...');
     await registerServiceWorker();
     await loadConfig();
-    setStatus('Pret. Saisis ton email, autorise les notifications, puis confirme l abonnement.');
+    setStatus('Ready. Enter your email, allow notifications, then confirm the subscription.');
   } catch (error) {
     setStatus(error.message);
   }
