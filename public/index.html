@@ -92,6 +92,7 @@
         gap: 8px;
         align-items: center;
         color: var(--muted);
+        white-space: nowrap;
       }
 
       .ack-row label.hidden {
@@ -148,6 +149,21 @@
       }
 
       .pdf-link:hover {
+        text-decoration: underline;
+      }
+
+      .support-copy {
+        margin-top: 12px;
+        margin-bottom: 0;
+      }
+
+      .support-copy a {
+        color: #0369a1;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .support-copy a:hover {
         text-decoration: underline;
       }
 
@@ -223,6 +239,16 @@
         <p id="assignment-copy"></p>
         <a id="pdf-link" class="pdf-link" target="_blank" rel="noreferrer">Open PDF in a new tab</a>
         <iframe id="pdf-frame" class="pdf-frame" title="Task information PDF"></iframe>
+        <p class="support-copy">
+          For any technical querie please consult the
+          <a
+            href="https://soa-reactfrontend-release.soi-oa.12c6.pcp.gcp.airbus.cloud/?file=V57540864002M00-130-001-B3.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
+            BC assistant
+          </a>
+        </p>
         <div class="ack-row">
           <label for="ack-checkbox">
             <input id="ack-checkbox" type="checkbox" />
