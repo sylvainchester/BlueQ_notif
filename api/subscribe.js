@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './_lib/supabaseAdmin.js';
+import { upsertSubscription } from './_lib/googleSheets.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,19 +16,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid subscription payload' });
   }
 
-  const { error } = await supabaseAdmin.from('push_subscriptions').upsert(
-    {
+  try {
+    await upsertSubscription({
       email,
       endpoint: subscription.endpoint,
       p256dh: subscription.keys.p256dh,
       auth: subscription.keys.auth,
-      user_agent: req.headers['user-agent'] || null,
-      updated_at: new Date().toISOString()
-    },
-    { onConflict: 'endpoint' }
-  );
-
-  if (error) {
+      userAgent: req.headers['user-agent'] || ''
+    });
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 

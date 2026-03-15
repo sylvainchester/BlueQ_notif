@@ -1,5 +1,9 @@
 import webpush from 'web-push';
-import { deleteSubscriptionByEndpoint, getSubscriptionsByEmail } from './_lib/googleSheets.js';
+import {
+  createAssignment,
+  deleteSubscriptionByEndpoint,
+  getSubscriptionsByEmail
+} from './_lib/googleSheets.js';
 
 function initVapid() {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
@@ -27,29 +31,34 @@ export default async function handler(req, res) {
     return unauthorized(res);
   }
 
-  const title = req.body?.title || 'BlueQ';
-  const body = req.body?.body || 'New notification';
-  const url = req.body?.url || '/';
   const email = req.body?.email?.trim().toLowerCase();
+  const taskName = req.body?.taskName?.trim();
+  const pdfUrl = req.body?.pdfUrl?.trim();
+  const sourceRef = req.body?.sourceRef?.trim() || null;
+  const baseUrl = (process.env.APP_URL || `https://${req.headers.host}`).replace(/\/$/, '');
 
-  if (!email) {
-    return res.status(400).json({ error: 'Missing email' });
+  if (!email || !taskName || !pdfUrl) {
+    return res.status(400).json({ error: 'Missing email, taskName or pdfUrl' });
   }
 
   try {
+    const assignment = await createAssignment({
+      email,
+      taskName,
+      pdfUrl,
+      sourceRef
+    });
+
     initVapid();
 
-    const data = await getSubscriptionsByEmail(email);
+    const subscriptions = await getSubscriptionsByEmail(email);
 
-    if (!data?.length) {
-      return res.status(200).json({ success: 0, failed: 0, message: 'No subscriptions', email });
-    }
-
+    const url = `${baseUrl}/?assignment=${assignment.id}`;
     let success = 0;
     let failed = 0;
 
     await Promise.all(
-      data.map(async (row) => {
+      (subscriptions || []).map(async (row) => {
         const subscription = {
           endpoint: row.endpoint,
           keys: {
@@ -62,8 +71,8 @@ export default async function handler(req, res) {
           await webpush.sendNotification(
             subscription,
             JSON.stringify({
-              title,
-              body,
+              title: 'Task assignment',
+              body: 'Please review important information before starting the task.',
               url
             })
           );
@@ -78,7 +87,13 @@ export default async function handler(req, res) {
       })
     );
 
-    return res.status(200).json({ success, failed, email });
+    return res.status(200).json({
+      assignmentId: assignment.id,
+      success,
+      failed,
+      email,
+      url
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Internal error' });
   }

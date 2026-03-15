@@ -4,9 +4,17 @@ const btnSubscribe = document.getElementById('btn-subscribe');
 const subscriptionPanel = document.getElementById('subscription-panel');
 const welcomeEl = document.getElementById('welcome');
 const welcomeMessageEl = document.getElementById('welcome-message');
+const assignmentViewEl = document.getElementById('assignment-view');
+const assignmentTitleEl = document.getElementById('assignment-title');
+const assignmentCopyEl = document.getElementById('assignment-copy');
+const assignmentStatusEl = document.getElementById('assignment-status');
+const pdfFrameEl = document.getElementById('pdf-frame');
+const ackCheckboxEl = document.getElementById('ack-checkbox');
+const ackSubmitEl = document.getElementById('ack-submit');
 
 const emailInput = document.getElementById('email');
 const savedEmailKey = 'blueq_push_email';
+let currentAssignment = null;
 
 let swRegistration;
 let vapidPublicKey;
@@ -20,9 +28,25 @@ function normalizeEmail(value) {
 }
 
 function showWelcome(email) {
+  assignmentViewEl.classList.add('hidden');
   welcomeMessageEl.textContent = `Welcome ${email}`;
   subscriptionPanel.classList.add('hidden');
   welcomeEl.classList.remove('hidden');
+}
+
+function showAssignment(assignment) {
+  currentAssignment = assignment;
+  welcomeEl.classList.add('hidden');
+  subscriptionPanel.classList.add('hidden');
+  assignmentTitleEl.textContent = 'Task assignment';
+  assignmentCopyEl.textContent = `You have been assigned to task ${assignment.taskName}. Please review the information below and confirm.`;
+  pdfFrameEl.src = assignment.pdfUrl;
+  ackCheckboxEl.checked = Boolean(assignment.acknowledged);
+  ackSubmitEl.disabled = Boolean(assignment.acknowledged);
+  assignmentStatusEl.textContent = assignment.acknowledged
+    ? `Already acknowledged on ${new Date(assignment.acknowledgedAt).toLocaleString()}.`
+    : '';
+  assignmentViewEl.classList.remove('hidden');
 }
 
 function getSavedEmail() {
@@ -31,6 +55,12 @@ function getSavedEmail() {
 
 function saveEmail(email) {
   localStorage.setItem(savedEmailKey, normalizeEmail(email));
+}
+
+function getAssignmentIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const assignmentId = Number(params.get('assignment'));
+  return Number.isInteger(assignmentId) && assignmentId > 0 ? assignmentId : null;
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -107,6 +137,57 @@ async function subscribePush() {
   return subscription;
 }
 
+async function loadAssignment(assignmentId) {
+  const response = await fetch(`/api/assignment?id=${assignmentId}`);
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to load assignment.');
+  }
+
+  return payload;
+}
+
+async function acknowledgeAssignment() {
+  if (!currentAssignment) {
+    throw new Error('No assignment loaded.');
+  }
+
+  if (!ackCheckboxEl.checked) {
+    throw new Error('Please confirm that you acknowledge the information.');
+  }
+
+  const email = getSavedEmail();
+  if (!email) {
+    throw new Error('No saved email found on this device.');
+  }
+
+  const response = await fetch('/api/acknowledge', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      assignmentId: currentAssignment.id,
+      email
+    })
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to submit acknowledgement.');
+  }
+
+  currentAssignment = {
+    ...currentAssignment,
+    acknowledged: true,
+    acknowledgedAt: payload.acknowledgedAt
+  };
+
+  assignmentStatusEl.textContent = 'Acknowledgement submitted.';
+  ackSubmitEl.disabled = true;
+}
+
 btnPermission.addEventListener('click', async () => {
   try {
     await requestPermission();
@@ -120,10 +201,19 @@ btnSubscribe.addEventListener('click', async () => {
   try {
     setStatus('Subscribing...');
     await requestPermission();
-    const subscription = await subscribePush();
+    await subscribePush();
     showWelcome(normalizeEmail(emailInput.value));
   } catch (error) {
     setStatus(error.message);
+  }
+});
+
+ackSubmitEl.addEventListener('click', async () => {
+  try {
+    assignmentStatusEl.textContent = 'Submitting...';
+    await acknowledgeAssignment();
+  } catch (error) {
+    assignmentStatusEl.textContent = error.message;
   }
 });
 
@@ -136,6 +226,17 @@ btnSubscribe.addEventListener('click', async () => {
     const savedEmail = getSavedEmail();
     if (savedEmail) {
       emailInput.value = savedEmail;
+    }
+
+    const assignmentId = getAssignmentIdFromUrl();
+    if (assignmentId) {
+      const assignment = await loadAssignment(assignmentId);
+      if (savedEmail && assignment.email !== savedEmail) {
+        setStatus(`This assignment is for ${assignment.email}.`);
+        return;
+      }
+      showAssignment(assignment);
+      return;
     }
 
     if (Notification.permission === 'granted') {

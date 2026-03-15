@@ -59,6 +59,37 @@
         display: none;
       }
 
+      .app-shell {
+        width: min(980px, 100%);
+      }
+
+      .document-shell {
+        width: min(100%, 980px);
+      }
+
+      .pdf-frame {
+        width: 100%;
+        min-height: 62vh;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: #e2e8f0;
+      }
+
+      .ack-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+
+      .ack-row label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--muted);
+      }
+
       input,
       button {
         border-radius: 10px;
@@ -88,7 +119,7 @@
     </style>
   </head>
   <body>
-    <main>
+    <main class="app-shell">
       <div id="subscription-panel">
         <h1>Push Notification Subscription</h1>
         <p>Enter your email address and confirm push notifications for this device.</p>
@@ -104,6 +135,20 @@
 
       <div id="welcome" class="hidden">
         <h1 id="welcome-message">Welcome</h1>
+      </div>
+
+      <div id="assignment-view" class="hidden document-shell">
+        <h1 id="assignment-title">Task assignment</h1>
+        <p id="assignment-copy"></p>
+        <iframe id="pdf-frame" class="pdf-frame" title="Task information PDF"></iframe>
+        <div class="ack-row">
+          <label for="ack-checkbox">
+            <input id="ack-checkbox" type="checkbox" />
+            <span>I acknowledge</span>
+          </label>
+          <button id="ack-submit">Submit</button>
+        </div>
+        <div id="assignment-status"></div>
       </div>
     </main>
 
