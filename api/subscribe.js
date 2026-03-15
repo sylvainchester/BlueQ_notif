@@ -5,7 +5,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const email = req.body?.email?.trim().toLowerCase();
   const subscription = req.body?.subscription;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Missing email' });
+  }
 
   if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
     return res.status(400).json({ error: 'Invalid subscription payload' });
@@ -13,6 +18,7 @@ export default async function handler(req, res) {
 
   const { error } = await supabaseAdmin.from('push_subscriptions').upsert(
     {
+      email,
       endpoint: subscription.endpoint,
       p256dh: subscription.keys.p256dh,
       auth: subscription.keys.auth,

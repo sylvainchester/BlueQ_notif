@@ -30,20 +30,26 @@ export default async function handler(req, res) {
   const title = req.body?.title || 'BlueQ';
   const body = req.body?.body || 'Nouvelle notification';
   const url = req.body?.url || '/';
+  const email = req.body?.email?.trim().toLowerCase();
+
+  if (!email) {
+    return res.status(400).json({ error: 'Missing email' });
+  }
 
   try {
     initVapid();
 
     const { data, error } = await supabaseAdmin
       .from('push_subscriptions')
-      .select('endpoint, p256dh, auth');
+      .select('endpoint, p256dh, auth')
+      .eq('email', email);
 
     if (error) {
       return res.status(500).json({ error: error.message });
     }
 
     if (!data?.length) {
-      return res.status(200).json({ success: 0, failed: 0, message: 'No subscriptions' });
+      return res.status(200).json({ success: 0, failed: 0, message: 'No subscriptions', email });
     }
 
     let success = 0;
@@ -79,7 +85,7 @@ export default async function handler(req, res) {
       })
     );
 
-    return res.status(200).json({ success, failed });
+    return res.status(200).json({ success, failed, email });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Internal error' });
   }

@@ -1,18 +1,18 @@
 const statusEl = document.getElementById('status');
 const btnPermission = document.getElementById('btn-permission');
 const btnSubscribe = document.getElementById('btn-subscribe');
-const btnTest = document.getElementById('btn-test');
 
-const titleInput = document.getElementById('title');
-const bodyInput = document.getElementById('body');
-const urlInput = document.getElementById('url');
-const tokenInput = document.getElementById('token');
+const emailInput = document.getElementById('email');
 
 let swRegistration;
 let vapidPublicKey;
 
 function setStatus(message) {
   statusEl.textContent = message;
+}
+
+function normalizeEmail(value) {
+  return value.trim().toLowerCase();
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -55,6 +55,11 @@ async function requestPermission() {
 }
 
 async function subscribePush() {
+  const email = normalizeEmail(emailInput.value);
+  if (!email) {
+    throw new Error('Saisis un email avant de t abonner.');
+  }
+
   let subscription = await swRegistration.pushManager.getSubscription();
 
   if (!subscription) {
@@ -70,6 +75,7 @@ async function subscribePush() {
       'content-type': 'application/json'
     },
     body: JSON.stringify({
+      email,
       subscription
     })
   });
@@ -80,28 +86,6 @@ async function subscribePush() {
   }
 
   return subscription;
-}
-
-async function sendTestNotification() {
-  const response = await fetch('/api/notify', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-admin-token': tokenInput.value.trim()
-    },
-    body: JSON.stringify({
-      title: titleInput.value.trim() || 'Notification',
-      body: bodyInput.value.trim() || 'Message',
-      url: urlInput.value.trim() || '/'
-    })
-  });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload.error || `Erreur HTTP ${response.status}`);
-  }
-
-  return payload;
 }
 
 btnPermission.addEventListener('click', async () => {
@@ -118,17 +102,7 @@ btnSubscribe.addEventListener('click', async () => {
     setStatus('Abonnement en cours...');
     await requestPermission();
     const subscription = await subscribePush();
-    setStatus(`Abonnement actif.\nEndpoint: ${subscription.endpoint}`);
-  } catch (error) {
-    setStatus(error.message);
-  }
-});
-
-btnTest.addEventListener('click', async () => {
-  try {
-    setStatus('Envoi en cours...');
-    const result = await sendTestNotification();
-    setStatus(`Notification envoyee. Succes: ${result.success}, erreurs: ${result.failed}`);
+    setStatus(`Abonnement actif pour ${normalizeEmail(emailInput.value)}.\nEndpoint: ${subscription.endpoint}`);
   } catch (error) {
     setStatus(error.message);
   }
@@ -139,7 +113,7 @@ btnTest.addEventListener('click', async () => {
     setStatus('Initialisation...');
     await registerServiceWorker();
     await loadConfig();
-    setStatus('Pret. Autorise puis abonne le navigateur.');
+    setStatus('Pret. Saisis ton email, autorise les notifications, puis confirme l abonnement.');
   } catch (error) {
     setStatus(error.message);
   }

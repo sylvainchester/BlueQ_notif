@@ -1,6 +1,6 @@
 # BlueQ Notif PWA
 
-PWA minimale pour recevoir des notifications web push, avec stockage des abonnements dans Supabase et déploiement sur Vercel.
+PWA minimale pour recevoir des notifications web push, avec stockage des abonnements dans Supabase par email et déploiement sur Vercel.
 
 ## 1) Préparer Supabase
 
@@ -35,9 +35,10 @@ npm run dev
 
 Ensuite:
 1. Ouvre l'app dans le navigateur (Chrome/Edge conseillé).
-2. Clique `Autoriser notifications`.
-3. Clique `S'abonner au push`.
-4. Clique `Envoyer un test`.
+2. Saisis un email.
+3. Clique `Autoriser notifications`.
+4. Clique `S'abonner au push`.
+5. Saisis l'email cible puis clique `Envoyer un test`.
 
 ## 5) Déployer sur Vercel
 
@@ -49,14 +50,15 @@ vercel --prod
 ## Endpoints
 
 - `GET /api/config` -> retourne la clé publique VAPID
-- `POST /api/subscribe` -> enregistre l'abonnement dans Supabase
+- `POST /api/subscribe` -> enregistre l'abonnement dans Supabase pour un email
 - `POST /api/unsubscribe` -> supprime un abonnement
-- `POST /api/notify` -> envoie une notification à tous les abonnés
+- `POST /api/notify` -> envoie une notification aux abonnés d'un email donné
 
 Exemple `POST /api/notify`:
 
 ```json
 {
+  "email": "personne@example.com",
   "title": "BlueQ",
   "body": "Nouveau message",
   "url": "/"
