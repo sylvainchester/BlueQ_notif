@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>BlueQ Notif</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon-192.svg" />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #475569;
+        --accent: #0ea5e9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #dbeafe 0%, var(--bg) 40%);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+      }
+
+      main {
+        width: min(560px, 100%);
+        background: var(--card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 12px 36px rgba(15, 23, 42, 0.12);
+      }
+
+      h1 {
+        margin: 0 0 6px;
+      }
+
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+
+      .row {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      input,
+      button {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        font-size: 15px;
+        padding: 10px 12px;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        background: var(--accent);
+        color: white;
+        font-weight: 600;
+      }
+
+      button.secondary {
+        background: #334155;
+      }
+
+      #status {
+        margin-top: 14px;
+        font-size: 14px;
+        color: #0f766e;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Hello, you have been allocated to a task, please consult the quality precaution below!</h1>
+      <p>This PWA can receive push notifications and display task updates.</p>
+
+      <div class="row">
+        <button id="btn-permission">1) Autoriser notifications</button>
+        <button id="btn-subscribe">2) S'abonner au push</button>
+      </div>
+
+      <div class="row" style="margin-top: 18px">
+        <input id="title" type="text" value="Notification BlueQ" placeholder="Titre" />
+        <input id="body" type="text" value="Ceci est un test" placeholder="Message" />
+        <input id="url" type="text" value="/" placeholder="URL au clic" />
+        <input id="token" type="password" placeholder="PUSH_ADMIN_TOKEN (optionnel en local)" />
+        <button id="btn-test" class="secondary">3) Envoyer un test</button>
+      </div>
+
+      <div id="status">Prêt.</div>
+    </main>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
