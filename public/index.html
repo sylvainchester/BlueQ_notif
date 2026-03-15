@@ -124,9 +124,31 @@
         font-size: 14px;
       }
 
+      .status-pending {
+        color: #b91c1c;
+        font-weight: 700;
+      }
+
+      .status-acknowledged {
+        color: #15803d;
+        font-weight: 700;
+      }
+
       #assignment-status {
         margin-top: 12px;
         color: var(--muted);
+      }
+
+      .pdf-link {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: #0369a1;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .pdf-link:hover {
+        text-decoration: underline;
       }
 
       input,
@@ -199,6 +221,7 @@
       <div id="assignment-view" class="hidden document-shell">
         <h1 id="assignment-title">Task assignment</h1>
         <p id="assignment-copy"></p>
+        <a id="pdf-link" class="pdf-link" target="_blank" rel="noreferrer">Open PDF in a new tab</a>
         <iframe id="pdf-frame" class="pdf-frame" title="Task information PDF"></iframe>
         <div class="ack-row">
           <label for="ack-checkbox">

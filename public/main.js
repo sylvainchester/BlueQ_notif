@@ -10,6 +10,7 @@ const assignmentTitleEl = document.getElementById('assignment-title');
 const assignmentCopyEl = document.getElementById('assignment-copy');
 const assignmentStatusEl = document.getElementById('assignment-status');
 const pdfFrameEl = document.getElementById('pdf-frame');
+const pdfLinkEl = document.getElementById('pdf-link');
 const ackCheckboxEl = document.getElementById('ack-checkbox');
 const ackLabelEl = document.querySelector('label[for="ack-checkbox"]');
 const ackSubmitEl = document.getElementById('ack-submit');
@@ -51,7 +52,7 @@ function showHistory(email, assignments = assignmentsCache) {
       button.innerHTML = `
         <strong>${assignment.taskName}</strong>
         <span>${new Date(assignment.assignedAt).toLocaleString()}</span>
-        <span>${assignment.acknowledged ? 'Acknowledged' : 'Pending acknowledgement'}</span>
+        <span class="${assignment.acknowledged ? 'status-acknowledged' : 'status-pending'}">${assignment.acknowledged ? 'Acknowledged' : 'Pending acknowledgement'}</span>
       `;
       historyListEl.append(button);
     });
@@ -66,6 +67,7 @@ function showAssignment(assignment) {
   subscriptionPanel.classList.add('hidden');
   assignmentTitleEl.textContent = 'Task assignment';
   assignmentCopyEl.textContent = `You have been assigned to task ${assignment.taskName}. Please review the information below and confirm.`;
+  pdfLinkEl.href = assignment.pdfUrl;
   pdfFrameEl.src = assignment.pdfUrl;
   ackCheckboxEl.checked = Boolean(assignment.acknowledged);
   ackSubmitEl.disabled = Boolean(assignment.acknowledged);
