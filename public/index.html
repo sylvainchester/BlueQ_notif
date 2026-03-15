@@ -90,6 +90,41 @@
         color: var(--muted);
       }
 
+      .ack-row label.hidden {
+        display: none;
+      }
+
+      .history-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .history-item {
+        width: 100%;
+        text-align: left;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        color: var(--text);
+        padding: 14px;
+      }
+
+      .history-item strong,
+      .history-item span {
+        display: block;
+      }
+
+      .history-item span {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      #assignment-status {
+        margin-top: 12px;
+        color: var(--muted);
+      }
+
       input,
       button {
         border-radius: 10px;
@@ -133,8 +168,10 @@
         <div id="status">Ready.</div>
       </div>
 
-      <div id="welcome" class="hidden">
+      <div id="history-view" class="hidden">
         <h1 id="welcome-message">Welcome</h1>
+        <p>Your received task information appears below.</p>
+        <div id="history-list" class="history-list"></div>
       </div>
 
       <div id="assignment-view" class="hidden document-shell">
@@ -147,6 +184,7 @@
             <span>I acknowledge</span>
           </label>
           <button id="ack-submit">Submit</button>
+          <button id="back-button" class="secondary">Back</button>
         </div>
         <div id="assignment-status"></div>
       </div>

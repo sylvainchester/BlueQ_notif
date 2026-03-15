@@ -2,19 +2,23 @@ const statusEl = document.getElementById('status');
 const btnPermission = document.getElementById('btn-permission');
 const btnSubscribe = document.getElementById('btn-subscribe');
 const subscriptionPanel = document.getElementById('subscription-panel');
-const welcomeEl = document.getElementById('welcome');
+const historyViewEl = document.getElementById('history-view');
 const welcomeMessageEl = document.getElementById('welcome-message');
+const historyListEl = document.getElementById('history-list');
 const assignmentViewEl = document.getElementById('assignment-view');
 const assignmentTitleEl = document.getElementById('assignment-title');
 const assignmentCopyEl = document.getElementById('assignment-copy');
 const assignmentStatusEl = document.getElementById('assignment-status');
 const pdfFrameEl = document.getElementById('pdf-frame');
 const ackCheckboxEl = document.getElementById('ack-checkbox');
+const ackLabelEl = document.querySelector('label[for="ack-checkbox"]');
 const ackSubmitEl = document.getElementById('ack-submit');
+const backButtonEl = document.getElementById('back-button');
 
 const emailInput = document.getElementById('email');
 const savedEmailKey = 'blueq_push_email';
 let currentAssignment = null;
+let assignmentsCache = [];
 
 let swRegistration;
 let vapidPublicKey;
@@ -27,22 +31,47 @@ function normalizeEmail(value) {
   return value.trim().toLowerCase();
 }
 
-function showWelcome(email) {
+function showHistory(email, assignments = assignmentsCache) {
+  assignmentsCache = assignments;
   assignmentViewEl.classList.add('hidden');
-  welcomeMessageEl.textContent = `Welcome ${email}`;
   subscriptionPanel.classList.add('hidden');
-  welcomeEl.classList.remove('hidden');
+  welcomeMessageEl.textContent = `Welcome ${email}`;
+  historyListEl.innerHTML = '';
+
+  if (!assignments.length) {
+    const emptyState = document.createElement('p');
+    emptyState.textContent = 'No task information has been received yet.';
+    historyListEl.append(emptyState);
+  } else {
+    assignments.forEach((assignment) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'history-item';
+      button.dataset.assignmentId = assignment.id;
+      button.innerHTML = `
+        <strong>${assignment.taskName}</strong>
+        <span>${new Date(assignment.assignedAt).toLocaleString()}</span>
+        <span>${assignment.acknowledged ? 'Acknowledged' : 'Pending acknowledgement'}</span>
+      `;
+      historyListEl.append(button);
+    });
+  }
+
+  historyViewEl.classList.remove('hidden');
 }
 
 function showAssignment(assignment) {
   currentAssignment = assignment;
-  welcomeEl.classList.add('hidden');
+  historyViewEl.classList.add('hidden');
   subscriptionPanel.classList.add('hidden');
   assignmentTitleEl.textContent = 'Task assignment';
   assignmentCopyEl.textContent = `You have been assigned to task ${assignment.taskName}. Please review the information below and confirm.`;
   pdfFrameEl.src = assignment.pdfUrl;
   ackCheckboxEl.checked = Boolean(assignment.acknowledged);
   ackSubmitEl.disabled = Boolean(assignment.acknowledged);
+  ackCheckboxEl.disabled = Boolean(assignment.acknowledged);
+  ackLabelEl.classList.toggle('hidden', Boolean(assignment.acknowledged));
+  ackSubmitEl.classList.toggle('hidden', Boolean(assignment.acknowledged));
   assignmentStatusEl.textContent = assignment.acknowledged
     ? `Already acknowledged on ${new Date(assignment.acknowledgedAt).toLocaleString()}.`
     : '';
@@ -148,6 +177,17 @@ async function loadAssignment(assignmentId) {
   return payload;
 }
 
+async function loadAssignments(email) {
+  const response = await fetch(`/api/assignments?email=${encodeURIComponent(email)}`);
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to load assignment history.');
+  }
+
+  return payload.assignments || [];
+}
+
 async function acknowledgeAssignment() {
   if (!currentAssignment) {
     throw new Error('No assignment loaded.');
@@ -185,7 +225,9 @@ async function acknowledgeAssignment() {
   };
 
   assignmentStatusEl.textContent = 'Acknowledgement submitted.';
-  ackSubmitEl.disabled = true;
+  const savedEmail = getSavedEmail();
+  assignmentsCache = await loadAssignments(savedEmail);
+  showHistory(savedEmail, assignmentsCache);
 }
 
 btnPermission.addEventListener('click', async () => {
@@ -202,7 +244,8 @@ btnSubscribe.addEventListener('click', async () => {
     setStatus('Subscribing...');
     await requestPermission();
     await subscribePush();
-    showWelcome(normalizeEmail(emailInput.value));
+    assignmentsCache = await loadAssignments(normalizeEmail(emailInput.value));
+    showHistory(normalizeEmail(emailInput.value), assignmentsCache);
   } catch (error) {
     setStatus(error.message);
   }
@@ -214,6 +257,33 @@ ackSubmitEl.addEventListener('click', async () => {
     await acknowledgeAssignment();
   } catch (error) {
     assignmentStatusEl.textContent = error.message;
+  }
+});
+
+backButtonEl.addEventListener('click', async () => {
+  try {
+    const savedEmail = getSavedEmail();
+    if (!savedEmail) {
+      throw new Error('No saved email found on this device.');
+    }
+    assignmentsCache = await loadAssignments(savedEmail);
+    showHistory(savedEmail, assignmentsCache);
+  } catch (error) {
+    assignmentStatusEl.textContent = error.message;
+  }
+});
+
+historyListEl.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-assignment-id]');
+  if (!button) {
+    return;
+  }
+
+  try {
+    const assignment = await loadAssignment(button.dataset.assignmentId);
+    showAssignment(assignment);
+  } catch (error) {
+    setStatus(error.message);
   }
 });
 
@@ -242,7 +312,8 @@ ackSubmitEl.addEventListener('click', async () => {
     if (Notification.permission === 'granted') {
       const existingSubscription = await swRegistration.pushManager.getSubscription();
       if (existingSubscription && savedEmail) {
-        showWelcome(savedEmail);
+        assignmentsCache = await loadAssignments(savedEmail);
+        showHistory(savedEmail, assignmentsCache);
         return;
       }
     }

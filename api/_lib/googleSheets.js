@@ -277,6 +277,23 @@ export async function getAssignmentById(id) {
   };
 }
 
+export async function getAssignmentsByEmail(email) {
+  const { rows } = await getSheetRows(assignmentsSheetName, assignmentsHeaders);
+  return rows
+    .filter((row) => row.record.email === email)
+    .map((row) => ({
+      id: row.record.id,
+      email: row.record.email,
+      taskName: row.record.task_name,
+      pdfUrl: row.record.pdf_url,
+      sourceRef: row.record.source_ref,
+      assignedAt: row.record.assigned_at,
+      acknowledged: row.record.acknowledged === 'true',
+      acknowledgedAt: row.record.acknowledged_at || ''
+    }))
+    .sort((left, right) => String(right.assignedAt).localeCompare(String(left.assignedAt)));
+}
+
 export async function acknowledgeAssignment({ assignmentId, email }) {
   const assignment = await getAssignmentById(assignmentId);
   if (!assignment || assignment.email !== email) {
