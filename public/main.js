@@ -6,6 +6,7 @@ const welcomeEl = document.getElementById('welcome');
 const welcomeMessageEl = document.getElementById('welcome-message');
 
 const emailInput = document.getElementById('email');
+const savedEmailKey = 'blueq_push_email';
 
 let swRegistration;
 let vapidPublicKey;
@@ -22,6 +23,14 @@ function showWelcome(email) {
   welcomeMessageEl.textContent = `Welcome ${email}`;
   subscriptionPanel.classList.add('hidden');
   welcomeEl.classList.remove('hidden');
+}
+
+function getSavedEmail() {
+  return normalizeEmail(localStorage.getItem(savedEmailKey) || '');
+}
+
+function saveEmail(email) {
+  localStorage.setItem(savedEmailKey, normalizeEmail(email));
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -94,6 +103,7 @@ async function subscribePush() {
     throw new Error(`Failed to save subscription: ${body}`);
   }
 
+  saveEmail(email);
   return subscription;
 }
 
@@ -122,6 +132,20 @@ btnSubscribe.addEventListener('click', async () => {
     setStatus('Initializing...');
     await registerServiceWorker();
     await loadConfig();
+
+    const savedEmail = getSavedEmail();
+    if (savedEmail) {
+      emailInput.value = savedEmail;
+    }
+
+    if (Notification.permission === 'granted') {
+      const existingSubscription = await swRegistration.pushManager.getSubscription();
+      if (existingSubscription && savedEmail) {
+        showWelcome(savedEmail);
+        return;
+      }
+    }
+
     setStatus('Ready. Enter your email, allow notifications, then confirm the subscription.');
   } catch (error) {
     setStatus(error.message);
