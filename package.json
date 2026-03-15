@@ -1,0 +1,14 @@
+{
+  "name": "blueq-notif-pwa",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "web-push": "^3.6.7"
+  }
+}
