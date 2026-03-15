@@ -1,6 +1,9 @@
 const statusEl = document.getElementById('status');
 const btnPermission = document.getElementById('btn-permission');
 const btnSubscribe = document.getElementById('btn-subscribe');
+const subscriptionPanel = document.getElementById('subscription-panel');
+const welcomeEl = document.getElementById('welcome');
+const welcomeMessageEl = document.getElementById('welcome-message');
 
 const emailInput = document.getElementById('email');
 
@@ -13,6 +16,12 @@ function setStatus(message) {
 
 function normalizeEmail(value) {
   return value.trim().toLowerCase();
+}
+
+function showWelcome(email) {
+  welcomeMessageEl.textContent = `Welcome ${email}`;
+  subscriptionPanel.classList.add('hidden');
+  welcomeEl.classList.remove('hidden');
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -102,7 +111,7 @@ btnSubscribe.addEventListener('click', async () => {
     setStatus('Subscribing...');
     await requestPermission();
     const subscription = await subscribePush();
-    setStatus(`Subscription active for ${normalizeEmail(emailInput.value)}.\nEndpoint: ${subscription.endpoint}`);
+    showWelcome(normalizeEmail(emailInput.value));
   } catch (error) {
     setStatus(error.message);
   }

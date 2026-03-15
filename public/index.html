@@ -55,6 +55,10 @@
         margin-top: 10px;
       }
 
+      .hidden {
+        display: none;
+      }
+
       input,
       button {
         border-radius: 10px;
@@ -85,16 +89,22 @@
   </head>
   <body>
     <main>
-      <h1>Push Notification Subscription</h1>
-      <p>Enter your email address and confirm push notifications for this device.</p>
+      <div id="subscription-panel">
+        <h1>Push Notification Subscription</h1>
+        <p>Enter your email address and confirm push notifications for this device.</p>
 
-      <div class="row">
-        <input id="email" type="email" placeholder="Email address for this device" />
-        <button id="btn-permission">1) Allow notifications</button>
-        <button id="btn-subscribe">2) Subscribe to push</button>
+        <div class="row">
+          <input id="email" type="email" placeholder="Email address for this device" />
+          <button id="btn-permission">1) Allow notifications</button>
+          <button id="btn-subscribe">2) Subscribe to push</button>
+        </div>
+
+        <div id="status">Ready.</div>
       </div>
 
-      <div id="status">Ready.</div>
+      <div id="welcome" class="hidden">
+        <h1 id="welcome-message">Welcome</h1>
+      </div>
     </main>
 
     <script type="module" src="/main.js"></script>
