@@ -17,8 +17,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || fallback.title;
   const options = {
     body: data.body || fallback.body,
-    icon: '/public/icons/icon-192.svg',
-    badge: '/public/icons/icon-192.svg',
+    icon: '/icons/icon-192.svg',
+    badge: '/icons/icon-192.svg',
     data: {
       url: data.url || '/'
     }
