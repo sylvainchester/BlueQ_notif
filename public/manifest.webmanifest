@@ -5,6 +5,19 @@
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#0f172a",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/pdf": [
+          ".pdf"
+        ]
+      }
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.svg",
