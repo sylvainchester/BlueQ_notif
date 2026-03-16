@@ -114,6 +114,16 @@
         padding: 14px;
       }
 
+      .history-item.pending {
+        background: #fee2e2;
+        border-color: #fca5a5;
+      }
+
+      .history-item.acknowledged {
+        background: #dcfce7;
+        border-color: #86efac;
+      }
+
       .history-item strong,
       .history-item span {
         display: block;
@@ -126,12 +136,12 @@
       }
 
       .history-item span.status-pending {
-        color: #b91c1c;
+        color: var(--text);
         font-weight: 700;
       }
 
       .history-item span.status-acknowledged {
-        color: #15803d;
+        color: var(--text);
         font-weight: 700;
       }
 

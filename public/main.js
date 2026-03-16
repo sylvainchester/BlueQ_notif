@@ -47,7 +47,7 @@ function showHistory(email, assignments = assignmentsCache) {
     assignments.forEach((assignment) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'history-item';
+      button.className = `history-item ${assignment.acknowledged ? 'acknowledged' : 'pending'}`;
       button.dataset.assignmentId = assignment.id;
       button.innerHTML = `
         <strong>${assignment.taskName}</strong>
